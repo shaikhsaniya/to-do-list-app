@@ -1,11 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { signOut } from 'firebase/auth'
+import { auth } from '../config/firebase'
 
 interface User {
-  photoURL: any
-  _id: string
+  photoURL?: string
+  _id?: string
   name: string
   email: string
-  token: string
+  token?: string
+  uid?: string // for Firebase users
 }
 
 interface AuthState {
@@ -59,17 +62,37 @@ export const loginUser = createAsyncThunk(
 )
 
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
-  // Since we're using token-based auth, we just need to clear the state
+  try {
+    await signOut(auth) // Sign out from Firebase if using OAuth
+  } catch (error) {
+    console.log('Not a Firebase user, continuing with normal logout')
+  }
+  localStorage.removeItem('token')
+  localStorage.removeItem('userData')
   return null
 })
-
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
     setUser: (state, action) => {
-      state.user = action.payload
+      if (action.payload) {
+        // Handle Firebase user
+        if (action.payload.uid) {
+          state.user = {
+            uid: action.payload.uid,
+            name: action.payload.displayName || 'User',
+            email: action.payload.email || '',
+            photoURL: action.payload.photoURL
+          }
+        } else {
+          // Handle REST API user
+          state.user = action.payload
+        }
+      } else {
+        state.user = null
+      }
     },
     clearError: (state) => {
       state.error = null
