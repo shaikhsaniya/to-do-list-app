@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup } from 'firebase/auth'
 import { auth, googleProvider, githubProvider } from './config/firebase'
 import { setUser, logoutUser } from './redux/authSlice'
 import { AppDispatch, RootState } from './redux/store'
